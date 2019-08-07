@@ -1,0 +1,42 @@
+#!/usr/bin/env variant
+# vi: ft=yaml
+
+import: github.com/aroq/variant-lib?ref=v0.5.9//tasks.yaml
+# import: .tasks.yaml
+
+autoenv: true
+bindParamsFromEnv: true
+
+description: |
+  Deploys a stable release artifact (based on "RELEASE_VERSION" parameter) to the target environment. A target environment is set with "./release env set {ENVIRONMENT}" command.
+
+parameters:
+- name: RELEASE_VERSION
+  description: |
+    Sets a release version (artifact version).
+    You can set "RELEASE_VERSION" environment variable to set a value for this parameter.
+  default: ""
+
+steps:
+- task: deliver
+- task: operations
+tasks:
+  deliver:
+    description: |
+      Delivers a stable release artifact code (based on "RELEASE_VERSION" parameter) to the target environment. A target environment is set with "./release env set {ENVIRONMENT}" command.
+    steps:
+    - task: utils.artifact.retrieve.gitpack
+      arguments:
+        version: '{{.RELEASE_VERSION}}'
+    - task: utils.artifact.deliver.ansistrano.archive
+      arguments:
+        version: '{{.RELEASE_VERSION}}'
+
+  operations:
+    description: |
+      Performs the deploy operations on the target environment. A target environment is set with "./release env set {ENVIRONMENT}" command.
+    steps:
+    - task: environment.exec
+      arguments:
+        title: 'Deploy:: Operations :: pwd'
+        cmd: 'pwd'
